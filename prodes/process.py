@@ -1,3 +1,4 @@
+import pandas as pd
 from collections import defaultdict
 from dbfread import DBF
 
@@ -54,6 +55,7 @@ def process_single_year_prodes_shp_file(data_path):
 
 def process_combined_files(gfw_data, prodes_multi_year_data, single_year_data):
     """
+    Combines data from GFW and PRODES sources.
 
     :param gfw_data: path to GFW DBF file
     :param prodes_multi_year_data: path to PRODES multi-year SHP DBF file
@@ -67,3 +69,19 @@ def process_combined_files(gfw_data, prodes_multi_year_data, single_year_data):
     
     # Preference PRODES raw over GFW
     return {**gfw_data, **prodes_data, **single_years}
+
+def get_brazil_emissions_data(gcp_data):
+    """
+    Uses the data from the Global Carbon Project (2019) to extract brazilian emissions from 2000 onward
+
+    :param gcp_data: path to GCP National xls file.
+    :returns: carbon (million tons) emitted by Brazil 
+    """
+    nat_data = pd.read_excel(gcp_data, sheet_name=1, skiprows=16)
+    year = nat_data.iloc[:, 0]
+    emissions = nat_data['Brazil'] 
+
+    return {str(y): e for y, e in zip(year, emissions) if y >= 2000}
+
+def convert_deforested_to_carbon(deforested_data, basin_size_km2=7e6, carbon_in_basin=150e9):
+    return {k: v * carbon_in_basin / basin_size_km2 for k, v in deforested_data.items()}
