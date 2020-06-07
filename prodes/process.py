@@ -83,5 +83,21 @@ def get_brazil_emissions_data(gcp_data):
 
     return {str(y): e for y, e in zip(year, emissions) if y >= 2000}
 
+def get_brazil_gdp_data(world_bank_path):
+    """
+    Uses the data from the World Bank (GDP, 2017 PPP) to extract brazilian GDP from 2000 onward
+
+    :param world_bank_path: path to World Bank csv file.
+    :returns: GDP ($) of Brazil
+    """
+    data = pd.read_csv(world_bank_path, skiprows=3)
+    brazil_data = data[data['Country Name'] == 'Brazil']
+    gdp = brazil_data.iloc[0, 4:]
+
+    return {k: v for k, v in zip(gdp.index, gdp) if k >= '2000' and k <= '2018'}
+
 def convert_deforested_to_carbon(deforested_data, basin_size_km2=7e6, carbon_in_basin=150e9):
     return {k: v * carbon_in_basin / basin_size_km2 for k, v in deforested_data.items()}
+
+def convert_carbon_to_value(carbon_data, carbon_value=110):
+    return {c: v * carbon_value for c, v in carbon_data.items()}
